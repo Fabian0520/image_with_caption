@@ -1,43 +1,46 @@
-from PIL import Image, ImageFont, ImageDraw, ImageStat
-import numpy as np
+import fileinput
+from PIL import Image, ImageDraw, ImageFont
+import numpy
+#from PIL.ĒKifTags import TAGS
 
-path_fonts = "/usr/share/fonts/TTF/"
-size_font = 15
-font = ImageFont.truetype(path_fonts+"DejaVuSans.ttf", size_font)
-filename_image = "test.jpg"
+def add_caption(input_file, caption, output_file="result.jpg"):
+# open original
+    image = Image.open(input_file)
+# rotate 90 deg counterclockwise
+    image = image.rotate(90, expand=True)
+# get size of picture
+    size_image = numpy.array(image.size)
 
-#load image
-image = Image.open(filename_image)
-#create drawable canvas
-canvas = ImageDraw.Draw(image)
-# get size of imge
-size_image = np.array(image.size)
-# 3% margin
-margin_image = size_image*0.03
+    path_fonts = "/usr/share/fonts/TTF/"
+    size_font = int(size_image[1]*0.01)
+    font = ImageFont.truetype(path_fonts+"DejaVuSans.ttf", size_font)
+# get size of text
+    size_text = numpy.array(font.getsize(caption))
 
-text = "Beispiel\nText"
-# text size
-size_text = np.array(canvas.multiline_textsize(text, font, spacing=2))
-# where to position the text
-position_text = size_image - margin_image - size_text
-# area under text
-area_text = np.append(position_text, (size_image-size_text))
+#----------
+    margin = int(size_text[1]*0.3)
+#gnügend Platz für den text
+    size_blank_image = (size_image[0], size_image[1] + size_text[1] + margin*2)
+# new blank image
+    blank_image = Image.new('RGB', size_blank_image, color="#000000")
 
-#------------------------------------------------------------------------
+    canvas = ImageDraw.Draw(blank_image)
+# text einfügen
+    canvas.text((0 + margin*5, 0 + margin), caption, font=font, fill="#ffffff")
+#original bild einfügen
+    blank_image.paste(image, (0, 0 + size_text[1] + margin*2))
+# zurück rotieren
+    blank_image = blank_image.rotate(-90, expand=True)
+    blank_image.save(output_file)
 
-cropped_image = image.crop(area_text)
+if __name__ ==  "__main__":
+#input_file = "test, png"
+    output = "_result"
+    counter = 0
+    with fileinput.input() as f_input:
+        for line in f_input:
+            outname = line.split('.')[0] + output + ".jpg"
+            add_caption(line.rstrip(), caption="Hallo", output_file=outname)
+            counter =+ 1
 
-median = np.array(ImageStat.Stat(cropped_image).median)
-color_text = "#"+str(hex(255 - int(np.average(median))))*3
-
-
-#------------------------------------------------------------------------
-
-# draw text on image
-canvas.multiline_text(position_text, text, font=font, align="center", fill=color_text)
-del canvas
-
-image.save("result.jpg")
-
-
-print(hex(255-int(np.average(median))))
+# TODO: EXIF auslesen und Datum Uhrzeit einfagen, Dateinaine einfügen
