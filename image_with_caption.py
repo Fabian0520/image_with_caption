@@ -1,4 +1,5 @@
 import sys
+import glob
 import argparse
 import numpy
 from PIL import Image, ImageDraw, ImageFont
@@ -37,12 +38,15 @@ if __name__ ==  "__main__":
     input_files = []
 
     parser = argparse.ArgumentParser(
-            epilog="It is possible to pipe the output of ls into this script.")
+            epilog="It is possible to pipe the output of ls into this script.") # create Parser
     parser.add_argument('-n', metavar='experiment number', nargs='?', dest='text')
+    parser.add_argument('-t', metavar='filetype', nargs='?', dest='file_type', required=True)
     parser.add_argument('input_file', nargs='*')
     args = parser.parse_args()
 
-    if args.input_file:
+    if args.file_type:  # add caption to all matching extentions in folder
+        input_files = glob.glob('*.'+args.file_type)
+    elif args.input_file:   # add caption to specified files
         input_files = args.input_file
     elif not sys.stdin.isatty(): # pipe files into app
         for line in sys.stdin.readlines():
@@ -51,6 +55,7 @@ if __name__ ==  "__main__":
         parser.print_help()
 
     for f in input_files:
+        print('Added caption to file: ', f)
         output = "_result"
         outname = f.split('.')[0] + output + ".jpg"
         add_caption(f, text=args.text, output_file=outname)
