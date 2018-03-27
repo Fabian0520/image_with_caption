@@ -30,7 +30,7 @@ def add_caption(input_file, text, output_file="result.jpg"):
     canvas.text((0 + margin*5, 0 + margin), caption, font=font, fill="#ffffff") # text einfügen
     blank_image.paste(image, (0, 0 + size_text[1] + margin*2)) #original bild einfügen
     blank_image = blank_image.rotate(-90, expand=True) # zurück rotieren
-    blank_image.save(output_file)
+    blank_image.save(output_file, exif=image.info['exif'])
 
 #--------------------------------------------------------------------------------
 
@@ -39,8 +39,8 @@ if __name__ ==  "__main__":
 
     parser = argparse.ArgumentParser(
             epilog="It is possible to pipe the output of ls into this script.") # create Parser
-    parser.add_argument('-n', metavar='experiment number', nargs='?', dest='text')
-    parser.add_argument('-t', metavar='filetype', nargs='?', dest='file_type', required=True)
+    parser.add_argument('-n', metavar='experiment number', nargs='?', dest='text', required=True)
+    parser.add_argument('-t', metavar='filetype', nargs='?', dest='file_type')
     parser.add_argument('input_file', nargs='*')
     args = parser.parse_args()
 
