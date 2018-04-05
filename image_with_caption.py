@@ -7,18 +7,20 @@ from PIL import Image, ImageDraw, ImageFont
 def add_caption(input_file, text, output_file="result.jpg"):
     image = Image.open(input_file) # open original
     exif_data = image._getexif() # get exif data
+
+    if exif_data: # build caption
+        image_date = exif_data[306] #306 is DateTime
+        # exif 274 is imagerotation
+        caption = text + "   " + str(image_date)
+    else:
+        caption = text
+
     image = image.rotate(90, expand=True) # rotate 90 deg counterclockwise
     size_image = numpy.array(image.size) # get size of picture
 
     path_fonts = "/usr/share/fonts/TTF/"
     size_font = int(size_image[1]*0.01) # calculate optimal fontsize
     font = ImageFont.truetype(path_fonts+"DejaVuSans.ttf", size_font)
-
-    if exif_data: # build caption
-        image_date = exif_data[306] #306 is DateTime
-        caption = text + "   " + str(image_date)
-    else:
-        caption = text
 
     size_text = numpy.array(font.getsize(caption)) # get size of text
 
